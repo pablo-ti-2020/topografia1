@@ -45,6 +45,9 @@ button{
 <button onclick="addRow()">Adicionar Linha</button>
 <button onclick="exportDXF()">Exportar DXF</button>
 
+<input type="file" id="fileInput" accept=".txt">
+<button onclick="importTXT()">Importar TXT</button>
+
 <table id="tabela">
 <thead>
 <tr>
@@ -65,6 +68,7 @@ button{
 </table>
 
 <script>
+// ===== Funções originais =====
 function addRow(){
   const tbody = document.querySelector("#tabela tbody");
   const rowCount = tbody.rows.length + 1;
@@ -87,7 +91,6 @@ function addRow(){
 }
 
 function exportDXF(){
-
   const rows = document.querySelectorAll("#tabela tbody tr");
 
   let dxf = "";
@@ -125,6 +128,44 @@ function exportDXF(){
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+// ===== NOVA FUNÇÃO DE IMPORTAR TXT SEM APAGAR LINHAS EXISTENTES =====
+function importTXT(){
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
+  if(!file){
+    alert("Selecione um arquivo TXT!");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/);
+    const tbody = document.querySelector("#tabela tbody");
+
+    lines.forEach(line=>{
+      if(line.trim() === "") return; // ignora linhas vazias
+      const parts = line.split(",");
+      if(parts.length < 4) return;
+
+      const nome = parts[0].trim();
+      const x = parts[1].trim();
+      const y = parts[2].trim();
+      const z = parts[3].trim();
+
+      const row = tbody.insertRow();
+      [nome, x, y, z].forEach(value=>{
+        const cell = row.insertCell();
+        const input = document.createElement("input");
+        input.value = value;
+        if(value !== nome) input.type = "number";
+        cell.appendChild(input);
+      });
+    });
+  }
+  reader.readAsText(file);
 }
 </script>
 
