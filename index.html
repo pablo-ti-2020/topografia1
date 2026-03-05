@@ -44,6 +44,7 @@ button{
 
 <button onclick="addRow()">Adicionar Linha</button>
 <button onclick="exportDXF()">Exportar DXF</button>
+<button onclick="exportDXF_Z()">Exportar DXF (Cota Z)</button>
 
 <input type="file" id="fileInput" accept=".txt">
 <button onclick="importTXT()">Importar TXT</button>
@@ -125,6 +126,44 @@ function exportDXF(){
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "pontos.dxf";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ===== NOVA FUNÇÃO DE EXPORTAR MOSTRANDO A COTA Z =====
+function exportDXF_Z(){
+  const rows = document.querySelectorAll("#tabela tbody tr");
+
+  let dxf = "";
+
+  // HEADER mínimo compatível R12
+  dxf += "0\nSECTION\n2\nHEADER\n0\nENDSEC\n";
+  dxf += "0\nSECTION\n2\nTABLES\n0\nENDSEC\n";
+  dxf += "0\nSECTION\n2\nBLOCKS\n0\nENDSEC\n";
+  dxf += "0\nSECTION\n2\nENTITIES\n";
+
+  rows.forEach(row=>{
+    const x = parseFloat(row.cells[1].children[0].value) || 0;
+    const y = parseFloat(row.cells[2].children[0].value) || 0;
+    const z = parseFloat(row.cells[3].children[0].value) || 0;
+
+    // POINT
+    dxf += "0\nPOINT\n8\n0\n";
+    dxf += "10\n"+x+"\n20\n"+y+"\n30\n"+z+"\n";
+
+    // TEXT com valor da COTA
+    dxf += "0\nTEXT\n8\n0\n";
+    dxf += "10\n"+(x+0.5)+"\n20\n"+(y+0.5)+"\n30\n"+z+"\n";
+    dxf += "40\n2\n1\n"+z+"\n";
+  });
+
+  dxf += "0\nENDSEC\n0\nEOF";
+
+  const blob = new Blob([dxf], {type:"application/dxf"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "pontos_cota.dxf";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
